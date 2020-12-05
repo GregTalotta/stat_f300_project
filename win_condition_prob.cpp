@@ -81,16 +81,16 @@ int handle_playing(const vector<card_type> &deck, vector<double> &ex_total, vect
             return (int)num_draw;
         }
     }
+    return (int)num_draw;
 }
 
-void round_1_ex_vals(double num, const vector<card_type> &deck, vector<double> &ex_total, vector<double> &ex_in_play)
+void draw(int draw, double num, const vector<card_type> &deck, vector<double> &ex_total, vector<double> &ex_in_play)
 {
-    double draw = 7.5;
-    for (int j = 0; j <= (int)draw; ++j)
+    for (int j = 0; j <= draw; ++j)
     {
         for (int i = 0; i <= deck.size(); ++i)
         {
-            ex_total[i] += deck[i].number - ex_total[i] * simple_prob(num - j, deck[i].number - ex_total[i]);
+            ex_total[i] += (ex_total[i]+1) * simple_prob(num - j, deck[i].number - ex_total[i]);
         }
     }
 }
@@ -103,7 +103,19 @@ void calc_win_probs(const vector<card_type> &deck)
     cout << "Enter how many turns you would like to go to:" << endl;
     int counter1 = 7;
     cin >> counter1;
+    int draws = 6;
+
+    cout << "\n\n\n\n\n\n\n\n\n\n\n" << endl;
+    cout << "Probability of having a win condition on the field by the end of turn:" << endl;
     for (int keeper = 0; keeper < counter1; ++keeper)
     {
+        ++draws;
+        draw(draws, deck_size, deck, ex_total, ex_in_play);
+        deck_size = deck_size - draws;
+        draws = handle_playing(deck, ex_total, ex_in_play);
+
+        cout << "    " << keeper+1 << ": ";
+        cout <<  ex_in_play[1]/ex_total[1] *100;
+        cout << "%" << endl;
     }
 }
