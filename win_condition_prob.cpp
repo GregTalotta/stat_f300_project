@@ -1,7 +1,9 @@
 #include <vector>
 using std::vector;
-
-void calc_win_probs(const card_type &draws, const card_type &win_con, const card_type &lands, const card_type &creature, const card_type &rest);
+#include <iostream>
+using std::cin;
+using std::cout;
+using std::endl;
 
 struct card_type
 {
@@ -22,15 +24,7 @@ struct card_type
     bool is_land = false;
 };
 
-struct ex_vals
-{
-    double draws_gone = 0.0;
-    double lands_gone = 0.0;
-    double win_con_gone = 0.0;
-    double lands_gone = 0.0;
-    double creature_gone = 0.0;
-    double rest_gone = 0.0;
-};
+void calc_win_probs(const vector<card_type> &deck);
 
 int main()
 {
@@ -40,17 +34,76 @@ int main()
     card_type lands(22);
     card_type rest(10, 2.6);
     card_type creature(13, 5.07);
-    calc_win_probs(draws, win_con, lands, creature, rest);
+    const vector<card_type> deck = {draws, win_con, lands, creature, rest};
+    calc_win_probs(deck);
     return 0;
 }
 
-void calc_win_probs(const card_type &draws, const card_type &win_con, const card_type &lands, const card_type &creature, const card_type &rest)
+double simple_prob(double cards, double cards_wanted)
 {
-    double deck_size = draws.number + win_con.number + lands.number + creature.number + rest.number;
-    double draws_gone = 0.0;
-    double lands_gone = 0.0;
-    double win_con_gone = 0.0;
-    double lands_gone = 0.0;
-    double creature_gone = 0.0;
-    double rest_gone = 0.0;
+    return cards_wanted / cards;
+}
+
+int handle_playing(const vector<card_type> &deck, vector<double> &ex_total, vector<double> &ex_in_play)
+{
+    double num_draw = 0.0;
+    // play a land
+    if (ex_total[2] - ex_in_play[2] >= 1)
+    {
+        ++ex_in_play[2];
+    }
+    double i = ex_in_play[2];
+    while (i > 0)
+    {
+        if ((ex_total[1] - ex_in_play[1] >= 1) && (deck[1].avg_cost <= i))
+        {
+            ++ex_in_play[1];
+            i -= deck[1].avg_cost;
+        }
+        else if ((ex_total[0] - ex_in_play[0] >= 1) && (deck[0].avg_cost <= i))
+        {
+            ++ex_in_play[0];
+            i -= deck[0].avg_cost;
+            num_draw += deck[0].avg_draw_amount;
+        }
+        else if ((ex_total[3] - ex_in_play[3] >= 1) && (deck[3].avg_cost <= i))
+        {
+            ++ex_in_play[3];
+            i -= deck[3].avg_cost;
+        }
+        else if ((ex_total[4] - ex_in_play[4] >= 1) && (deck[4].avg_cost <= i))
+        {
+            ++ex_in_play[4];
+            i -= deck[4].avg_cost;
+        }
+        else
+        {
+            return (int)num_draw;
+        }
+    }
+}
+
+void round_1_ex_vals(double num, const vector<card_type> &deck, vector<double> &ex_total, vector<double> &ex_in_play)
+{
+    double draw = 7.5;
+    for (int j = 0; j <= (int)draw; ++j)
+    {
+        for (int i = 0; i <= deck.size(); ++i)
+        {
+            ex_total[i] += deck[i].number - ex_total[i] * simple_prob(num - j, deck[i].number - ex_total[i]);
+        }
+    }
+}
+
+void calc_win_probs(const vector<card_type> &deck)
+{
+    double deck_size = deck[0].number + deck[1].number + deck[2].number + deck[3].number + deck[4].number;
+    vector<double> ex_in_play = {0.0, 0.0, 0.0, 0.0, 0.0};
+    vector<double> ex_total = {0.0, 0.0, 0.0, 0.0, 0.0};
+    cout << "Enter how many turns you would like to go to:" << endl;
+    int counter1 = 7;
+    cin >> counter1;
+    for (int keeper = 0; keeper < counter1; ++keeper)
+    {
+    }
 }
