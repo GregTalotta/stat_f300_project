@@ -28,23 +28,24 @@ void calc_win_probs(const vector<card_type> &deck);
 
 int main()
 {
-    card_type draws(10, 2.3);
-    draws.avg_draw_amount = 1.2;
-    card_type win_con(5, 4.0);
-    card_type lands(22);
-    card_type rest(10, 2.6);
-    card_type creature(13, 5.07);
+    // categorize the deck based on similarities
+    card_type draws(10, 2.3); //cards that let you draw more cards
+    draws.avg_draw_amount = 1.2; 
+    card_type win_con(5, 4.0); //The cards that the deck is based around
+    card_type lands(22); //cards that can give mana
+    card_type rest(10, 2.6); //cards that don't really matter for this
+    card_type creature(13, 5.07); //creature cards
     const vector<card_type> deck = {draws, win_con, lands, creature, rest};
     calc_win_probs(deck);
     return 0;
 }
 
-double simple_prob(double cards, double cards_wanted)
+double simple_prob(double cards, double cards_wanted) //number divided by total
 {
     return cards_wanted / cards;
 }
 
-int handle_playing(const vector<card_type> &deck, vector<double> &ex_total, vector<double> &ex_in_play)
+int handle_playing(const vector<card_type> &deck, vector<double> &ex_total, vector<double> &ex_in_play) //simulate a turn
 {
     double num_draw = 0.0;
     // play a land
@@ -55,23 +56,23 @@ int handle_playing(const vector<card_type> &deck, vector<double> &ex_total, vect
     double i = ex_in_play[2];
     while (i > 0)
     {
-        if ((ex_total[1] - ex_in_play[1] >= 1) && (deck[1].avg_cost <= i))
+        if ((ex_total[1] - ex_in_play[1] >= 1) && (deck[1].avg_cost <= i)) //focus playing win conditions
         {
             ++ex_in_play[1];
             i -= deck[1].avg_cost;
         }
-        else if ((ex_total[0] - ex_in_play[0] >= 1) && (deck[0].avg_cost <= i))
+        else if ((ex_total[0] - ex_in_play[0] >= 1) && (deck[0].avg_cost <= i)) //then draw more cards
         {
             ++ex_in_play[0];
             i -= deck[0].avg_cost;
             num_draw += deck[0].avg_draw_amount;
         }
-        else if ((ex_total[3] - ex_in_play[3] >= 1) && (deck[3].avg_cost <= i))
+        else if ((ex_total[3] - ex_in_play[3] >= 1) && (deck[3].avg_cost <= i)) //then creatures
         {
             ++ex_in_play[3];
             i -= deck[3].avg_cost;
         }
-        else if ((ex_total[4] - ex_in_play[4] >= 1) && (deck[4].avg_cost <= i))
+        else if ((ex_total[4] - ex_in_play[4] >= 1) && (deck[4].avg_cost <= i)) //then spells
         {
             ++ex_in_play[4];
             i -= deck[4].avg_cost;
@@ -90,7 +91,7 @@ void draw(int draw, double num, const vector<card_type> &deck, vector<double> &e
     {
         for (int i = 0; i <= deck.size(); ++i)
         {
-            ex_total[i] += (ex_total[i]+1) * simple_prob(num - j, deck[i].number - ex_total[i]);
+            ex_total[i] += (ex_total[i]+1) * simple_prob(num - j, deck[i].number - ex_total[i]); //calculate the expected value of each card type in the hand and on the field
         }
     }
 }
@@ -106,7 +107,7 @@ void calc_win_probs(const vector<card_type> &deck)
     int draws = 6;
 
     cout << "\n\n\n\n\n\n\n\n\n\n\n" << endl;
-    cout << "Probability of having a win condition on the field by the end of turn:" << endl;
+    cout << "Probability of having a win condition in the hand by the end of turn:" << endl;
     for (int keeper = 0; keeper < counter1; ++keeper)
     {
         ++draws;
@@ -115,7 +116,7 @@ void calc_win_probs(const vector<card_type> &deck)
         draws = handle_playing(deck, ex_total, ex_in_play);
 
         cout << "    " << keeper+1 << ": ";
-        cout <<  ex_in_play[1]/ex_total[1] *100;
+        cout <<  ex_total[1]/5 *100;
         cout << "%" << endl;
     }
 }
